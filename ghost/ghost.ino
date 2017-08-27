@@ -1805,6 +1805,18 @@ void handleTouch()
   server.send(200, "text/html", content) ;
 }
 
+void handleTouchDown() {
+  ghost_program = 2 ;
+  String content =  "OK" ;
+  server.send(200, "text/html", content) ;
+}
+
+void handleTouchUp() {
+  ghost_program = 3 ;
+  String content =  "OK" ;
+  server.send(200, "text/html", content) ;
+}
+
 void handleFan() {
    String temp = server.arg("ms");
    fanMS = temp.toInt() ;
@@ -1823,9 +1835,8 @@ void handleTail() {
    if ( tailMS == 0 ) {
      tailMS = 500 ;
    }
-   digitalWrite(LedPin, HIGH); 
 
-   String ok = "OK" ;
+   String ok = "OK" ; 
    server.send(200, "text/html", ok) ;
 }
 
@@ -1865,6 +1876,9 @@ void enableWebServer()
   server.on("/fan", getMethod, handleFan) ;
   server.on("/touch", getMethod, handleTouch) ;
   server.on("/tail", getMethod, handleTail) ;
+
+  server.on("/touchDown", getMethod, handleTouchDown) ;
+  server.on("/touchUp", getMethod, handleTouchUp) ;
   
   //server.on("/left", getMethod, handleLeft );
   //server.on("/right", getMethod, handleRight );
@@ -2043,6 +2057,17 @@ void loop(void) {
       }
   }
 
+  if ( ghost_program == 2 ) {
+      // force touch down ;
+      ghost_program = 0 ;
+      Set_PWM_to_Servo(RIGHT_PIN, upDegree );
+  }
+  if ( ghost_program == 3 ) {
+    Set_PWM_to_Servo(RIGHT_PIN, downDegree);
+    ghost_program = 0 ;
+  }
+  
+
   if ( fanMS > 0 ) {
     fanMS = fanMS - 10 ;
     tailMS = tailMS - 10 ;
@@ -2050,6 +2075,7 @@ void loop(void) {
     digitalWrite(LedPin, HIGH); 
   }
   else {
+    fanMS = 0 ;
     digitalWrite(LedPin, LOW); 
   }
   
@@ -2059,7 +2085,7 @@ void loop(void) {
     tailMS = tailMS - 200 ;
 
     if ( tailDir == 0 ) {
-      Set_PWM_to_Servo(TAIL_PIN, 180);
+      Set_PWM_to_Servo(TAIL_PIN, 200);
       tailDir = 1 ;
     }
     else {
@@ -2067,7 +2093,9 @@ void loop(void) {
       tailDir = 0 ;
     }
     delay( 200 ) ;
-    
+  }
+  else {
+    Set_PWM_to_Servo(TAIL_PIN, 120);
   }
 
 
